@@ -232,4 +232,4 @@ root@ubuntu:/home/romak/otus/manual_kernel_update/packer#
 
 ```
 
-https://app.vagrantup.com/romak79/boxes/centos-7-5
+https://app.vagrantup.com/romak79/boxes/centos-7-7
