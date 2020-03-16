@@ -204,29 +204,31 @@ Last login: Thu Mar  5 14:50:45 2020 from 10.0.2.2
 ## Поделимся полученным образом с сообществом. 
 
 ```
-root@ubuntu:/home/romak/otus/manual_kernel_update/packer# vagrant cloud publish --release romak79/centos-7-5 1.0 virtualbox centos-7.7.1908-kernel-5-x86_64-Minimal.box 
+root@ubuntu:/home/romak/otus/manual_kernel_update/packer# vagrant cloud publish --release romak79/centos-7-7 1.0 virtualbox centos-7.7.1908-kernel-5-x86_64-Minimal.box 
 You are about to publish a box on Vagrant Cloud with the following options:
-romak79/centos-7-5:   (v1.0) for provider 'virtualbox'
+romak79/centos-7-7:   (v1.0) for provider 'virtualbox'
 Automatic Release:     true
 Do you wish to continue? [y/N] y
 ==> cloud: Creating a box entry...
 ==> cloud: Box already exists, updating instead...
 ==> cloud: Creating a version entry...
+==> cloud: Version already exists, updating instead...
 ==> cloud: Creating a provider entry...
+==> cloud: Provider already exists, updating instead...
 ==> cloud: Uploading provider with file /home/romak/otus/manual_kernel_update/packer/centos-7.7.1908-kernel-5-x86_64-Minimal.box
 ==> cloud: Releasing box...
-Complete! Published romak79/centos-7-5
-tag:               romak79/centos-7-5
-username:          romak79
-name:              centos-7-5
-private:           false
-downloads:         0
-created_at:        2020-03-13T09:32:10.406Z
-updated_at:        2020-03-13T09:39:34.900Z
-short_description: centos-7-5
-current_version:   1.0
-providers:         virtualbox
-old_versions:      ...
+Complete! Published romak79/centos-7-7
+tag:             romak79/centos-7-7
+username:        romak79
+name:            centos-7-7
+private:         false
+downloads:       0
+created_at:      2020-03-16T15:31:20.148+03:00
+updated_at:      2020-03-16T15:31:24.527+03:00
+current_version: 1.0
+providers:       virtualbox
+old_versions:    ...
+
 root@ubuntu:/home/romak/otus/manual_kernel_update/packer# 
 
 
