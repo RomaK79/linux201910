@@ -1,11 +1,8 @@
 # Работа с LVM
 
---------------------
+## 1. Уменьшить том под / до 8Г.
 
-1. Уменьшить том под / до 8Г.
-
---------------------
-
+```
 PS C:\Users\romak\Documents\OTUS\Linux\Lesson3\stands-03-lvm-master> vagrant ssh
 [vagrant@lvm ~]$ lsblk
 	NAME                    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
@@ -19,13 +16,9 @@ PS C:\Users\romak\Documents\OTUS\Linux\Lesson3\stands-03-lvm-master> vagrant ssh
 	sdc                       8:32   0    2G  0 disk
 	sdd                       8:48   0    1G  0 disk
 	sde                       8:64   0    1G  0 disk
-
----------------------------
- 
-	Создаём временный  том для / раздела:
- 
----------------------------
-
+```
+### Создаём временный  том для / раздела:
+``` 
 [vagrant@lvm ~]$ pvcreate /dev/sdb
 	  WARNING: Running as a non-root user. Functionality may be unavailable.
 	  /run/lvm/lvmetad.socket: access failed: Permission denied
@@ -85,12 +78,10 @@ PS C:\Users\romak\Documents\OTUS\Linux\Lesson3\stands-03-lvm-master> vagrant ssh
 	  Block device           253:2
 
 [root@lvm vagrant]#
+```
+### Создаём на временном томе ФС, смонтируем его и перенесём на него данные из /
 
----------------------------------
-
-	Создаём на временном томе ФС, смонтируем его и перенесём на него данные из /
-
----------------------------------
+```
 [root@lvm vagrant]#
 [root@lvm vagrant]#
 [root@lvm vagrant]# mkfs.xfs /dev/vg_root/lv_root
@@ -104,13 +95,10 @@ PS C:\Users\romak\Documents\OTUS\Linux\Lesson3\stands-03-lvm-master> vagrant ssh
 			 =                       sectsz=512   sunit=0 blks, lazy-count=1
 	realtime =none                   extsz=4096   blocks=0, rtextents=0
 [root@lvm vagrant]# mount /dev/vg_root/lv_root /mnt
+```
+### скопируем все данные с / раздела в /mnt:
 
---------------------------------
-
-	скопируем все данные с / раздела в /mnt:
-
---------------------------------
-
+```
 [root@lvm vagrant]# xfsdump -J - /dev/VolGroup00/LogVol00 | xfsrestore -J - /mnt
 	bash: xfsrestore: command not found
 	bash: xfsdump: command not found
@@ -165,14 +153,10 @@ PS C:\Users\romak\Documents\OTUS\Linux\Lesson3\stands-03-lvm-master> vagrant ssh
 	xfsrestore: restore complete: 15 seconds elapsed
 	xfsrestore: Restore Status: SUCCESS
 [root@lvm vagrant]#
-
--------------------------
-
-	переконфигурируем grub для того, чтобы при старте перейти в новый /
-	Сымитируем текущий root -> сделаем в него chroot и обновим grub:
-
--------------------------	
-
+```
+### переконфигурируем grub для того, чтобы при старте перейти в новый /
+### Сымитируем текущий root -> сделаем в него chroot и обновим grub:
+```
 [root@lvm vagrant]# for i in /proc/ /sys/ /dev/ /run/ /boot/; do mount --bind $i /mnt/$i; done
 
 [root@lvm vagrant]# chroot /mnt/
@@ -182,13 +166,9 @@ PS C:\Users\romak\Documents\OTUS\Linux\Lesson3\stands-03-lvm-master> vagrant ssh
 	Found linux image: /boot/vmlinuz-3.10.0-862.2.3.el7.x86_64
 	Found initrd image: /boot/initramfs-3.10.0-862.2.3.el7.x86_64.img
 	done
-
--------------------------
-
-	Обновим образ initrd
-	
--------------------------
-
+```
+### Обновим образ initrd
+```	
 [root@lvm /]# cd /boot ; for i in `ls initramfs-*img`; do dracut -v $i `echo $i|sed "s/initramfs-//g;
 > s/.img//g"` --force; done
 	Executing: /sbin/dracut -v initramfs-3.10.0-862.2.3.el7.x86_64.img 3.10.0-862.2.3.el7.x86_64 --force
@@ -248,22 +228,15 @@ PS C:\Users\romak\Documents\OTUS\Linux\Lesson3\stands-03-lvm-master> vagrant ssh
 	*** Creating initramfs image file '/boot/initramfs-3.10.0-862.2.3.el7.x86_64.img' done ***
 
 [root@lvm boot]#
+```
+### чтобы при загрузке был смонтирован нужный root заменяем в файле /boot/grub2/grub.cfg rd.lvm.lv=VolGroup00/LogVol00 на rd.lvm.lv=vg_root/lv_root
 
-------------------------
-
-	чтобы при загрузке был смонтирован нужный root заменяем в файле /boot/grub2/grub.cfg rd.lvm.lv=VolGroup00/LogVol00 на rd.lvm.lv=vg_root/lv_root
-	
-------------------------
-
+```	
 [root@lvm boot]# exit
 [root@lvm vagrant]# reboot
-
-------------------------
-	
-	Перезагружаемся с новым рут томом
-	
-------------------------
-
+```
+### Перезагружаемся с новым рут томом
+```	
 Connection to 127.0.0.1 closed by remote host.
 Connection to 127.0.0.1 closed.
 PS C:\Users\romak\Documents\OTUS\Linux\Lesson3\stands-03-lvm-master> vagrant ssh
@@ -285,12 +258,10 @@ Last login: Mon May 27 14:28:28 2019 from 10.0.2.2
 	sde                       8:64   0    1G  0 disk
 
 [vagrant@lvm ~]$
+```
+### Изменяем размер старой VG и возвращаем на него рут. Для этого удаляем старый LV размером в 40G и создаем новый на 8G:
 
----------------------
-	Изменяем размер старой VG и возвращаем на него рут. Для этого удаляем
-	старый LV размером в 40G и создаем новый на 8G:
----------------------
-
+```
 [vagrant@lvm ~]$ sudo su
 
 [root@lvm vagrant]#  lvremove /dev/VolGroup00/LogVol00
@@ -305,11 +276,9 @@ Last login: Mon May 27 14:28:28 2019 from 10.0.2.2
 	  Logical volume "LogVol00" created.
 
 [root@lvm vagrant]#
-
----------------------
-	Создаём на новом томе ФС, смонтируем его и перенесём на него данные из lv_root
----------------------
-
+```
+### Создаём на новом томе ФС, смонтируем его и перенесём на него данные из lv_root
+```
 [root@lvm vagrant]# mkfs.xfs /dev/VolGroup00/LogVol00
 	meta-data=/dev/VolGroup00/LogVol00 isize=512    agcount=4, agsize=524288 blks
 			 =                       sectsz=512   attr=2, projid32bit=1
@@ -367,13 +336,9 @@ Last login: Mon May 27 14:28:28 2019 from 10.0.2.2
 	xfsrestore: restore complete: 15 seconds elapsed
 	xfsrestore: Restore Status: SUCCESS
 [root@lvm vagrant]#
-
-----------------------
-
-	переконфигурируем grub
-
-----------------------
-
+```
+### переконфигурируем grub
+```
 [root@lvm vagrant]#  for i in /proc/ /sys/ /dev/ /run/ /boot/; do mount --bind $i /mnt/$i; done
 
 [root@lvm vagrant]#  chroot /mnt/
@@ -441,20 +406,13 @@ Last login: Mon May 27 14:28:28 2019 from 10.0.2.2
 	*** Creating image file done ***
 	*** Creating initramfs image file '/boot/initramfs-3.10.0-862.2.3.el7.x86_64.img' done ***
 [root@lvm boot]#
-[root@lvm boot]#
-[root@lvm boot]#
-[root@lvm boot]#
+```
 
-----------------------
+## 2. Выделить том под /var в зеркало
 
-2. Выделить том под /var в зеркало
-
------------------------
-
-	На свободных дисках создаем зеркало:
+### На свободных дисках создаем зеркало:
 	
------------------------
-
+```
 [root@lvm boot]#
 
 [root@lvm boot]#
@@ -526,14 +484,11 @@ Last login: Mon May 27 14:28:28 2019 from 10.0.2.2
 	  Block device           253:7
 
 [root@lvm boot]#
+```
 
+### Создаем ФС и перемещаем туда /var:
 
-------------------------------
-
-	Создаем ФС и перемещаем туда /var:
-
-------------------------------
-
+```
 [root@lvm boot]# mkfs.ext4 /dev/vg_var/lv_var
 	mke2fs 1.42.9 (28-Dec-2013)
 	Filesystem label=
@@ -565,25 +520,19 @@ Last login: Mon May 27 14:28:28 2019 from 10.0.2.2
 [root@lvm boot]# cp -aR /var/* /mnt/ # rsync -avHPSAX /var/ /mnt/
 
 [root@lvm boot]#
+```
+### монтируем новый var в каталог /var:
 
-------------------------------
-
-	монтируем новый var в каталог /var:
-
-------------------------------
-
+```
 [root@lvm boot]# umount /mnt
 
 [root@lvm boot]# mount /dev/vg_var/lv_var /var
 
 [root@lvm boot]#
+```
+### Правим fstab для автоматического монтированиā /var:
 
-------------------------------
-
-	Правим fstab для автоматического монтированиā /var:
-
-------------------------------
-
+```
 [root@lvm boot]# echo "`blkid | grep var: | awk '{print $2}'` /var ext4 defaults 0 0" >> /etc/fstab
 
 [root@lvm boot]# cat /etc/fstab
@@ -599,13 +548,11 @@ Last login: Mon May 27 14:28:28 2019 from 10.0.2.2
 	UUID=570897ca-e759-4c81-90cf-389da6eee4cc /boot                   xfs     defaults        0 0
 	/dev/mapper/VolGroup00-LogVol01 swap                    swap    defaults        0 0
 	UUID="04ffb259-8486-4304-9e2b-b9c0319e301a" /var ext4 defaults 0 0
+```
 
------------------------------
+### перезагружаемся в новый root и удаляем временную Volume Group:
 
-	перезагружаемся в новый root и удаляем временную Volume Group:
-
------------------------------
-
+```
 [root@lvm boot]# reboot
 	Running in chroot, ignoring request.
 
@@ -644,13 +591,11 @@ Last login: Tue May 28 05:16:54 2019 from 10.0.2.2
 	  └─vg_var-lv_var        253:7    0  952M  0 lvm  /var
 	sde                        8:64   0    1G  0 disk
 [vagrant@lvm ~]$
+```
 
----------------------------------
+### удаляем временную Volume Group:
 
-	удаляем временную Volume Group:
-
----------------------------------
-
+```
 [vagrant@lvm ~]$ lvremove /dev/vg_root/lv_root
 	  WARNING: Running as a non-root user. Functionality may be unavailable.
 	  /run/lvm/lvmetad.socket: access failed: Permission denied
@@ -663,10 +608,6 @@ Last login: Tue May 28 05:16:54 2019 from 10.0.2.2
 	  Cannot process volume group vg_root
 
 [vagrant@lvm ~]$ sudo su
-
-[root@lvm vagrant]#
-
-[root@lvm vagrant]#
 
 [root@lvm vagrant]#  lvremove /dev/vg_root/lv_root
 	Do you really want to remove active logical volume vg_root/lv_root? [y/n]: y
@@ -702,13 +643,11 @@ Last login: Tue May 28 05:16:54 2019 from 10.0.2.2
 	sde                        8:64   0    1G  0 disk
 
 [root@lvm vagrant]#
+```
 
--------------------------------------
+## 3. Выделить том под /home
 
-3.	Выделить том под /home
-
--------------------------------------
-
+```
 [root@lvm vagrant]# lvcreate -n LogVol_Home -L 2G /dev/VolGroup00
 	  Logical volume "LogVol_Home" created.
 
@@ -778,13 +717,11 @@ Last login: Tue May 28 05:16:54 2019 from 10.0.2.2
 	drwx------. 3 vagrant vagrant 95 May 27 15:14 vagrant
 
 [root@lvm vagrant]#
+```
 
------------------------------
+## 4. Правим fstab длā автоматического монтированиā /home
 
-4. Правим fstab длā автоматического монтированиā /home
-
------------------------------
-
+```
 [root@lvm vagrant]#
 [root@lvm vagrant]# cat /etc/fstab
 
@@ -821,18 +758,14 @@ Last login: Tue May 28 05:16:54 2019 from 10.0.2.2
 	UUID="55133cb5-3e76-4edc-a0ad-9551f639c84c" /home xfs defaults 0 0
 
 [root@lvm vagrant]#
+```
 
-------------------------
+## 5. /home - сделать том для снапшотов
 
-5. /home - сделать том для снапшотов
-------------------------
 
-------------------------
-	
-	Сгенерируем файлы в /home/:
+### Сгенерируем файлы в /home/:
 
-------------------------
-
+```
 [root@lvm vagrant]#
 
 [root@lvm vagrant]# touch /home/file{1..20}
@@ -866,13 +799,11 @@ Last login: Tue May 28 05:16:54 2019 from 10.0.2.2
 
 [root@lvm vagrant]#
 [root@lvm vagrant]#
+```
 
-----------------------------
+### Делаем снапшот:
 
-	Делаем снапшот:
-
-----------------------------
-
+```
 [root@lvm vagrant]#
 
 [root@lvm vagrant]# lvcreate -L 100MB -s -n home_snap /dev/VolGroup00/LogVol_Home
@@ -909,13 +840,12 @@ Last login: Tue May 28 05:16:54 2019 from 10.0.2.2
 	sde                               8:64   0    1G  0 disk
 
 [root@lvm vagrant]#
+```
 
-------------------------------
+### Удаляем часть файлов:
 
-	Удаляем часть файлов:
 
-------------------------------
-
+```
 [root@lvm vagrant]#
 
 [root@lvm vagrant]# rm -f /home/file{11..20}
@@ -935,13 +865,11 @@ Last login: Tue May 28 05:16:54 2019 from 10.0.2.2
 	drwx------. 3 vagrant vagrant 95 May 27 15:14 vagrant
 
 [root@lvm vagrant]#
+```
 
---------------------------------
+### Восстанавливаем данные со снапшота:
 
-	Восстанавливаем данные со снапшота:
-
---------------------------------
-
+```
 [root@lvm vagrant]#
 [root@lvm vagrant]#
 
@@ -978,4 +906,5 @@ Last login: Tue May 28 05:16:54 2019 from 10.0.2.2
 	drwx------. 3 vagrant vagrant 95 May 27 15:14 vagrant
 
 [root@lvm vagrant]#
+```
 
