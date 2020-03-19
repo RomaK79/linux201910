@@ -1,0 +1,155 @@
+
+Работа с загрузчиком
+
+1. Попасть в систему без пароля несколькими способами
+
+2. Установить систему с LVM, после чего переименовать VG
+
+3. Добавить модуль в initrd
+
+
+1. Попасть в систему без пароля несколькими способами
+
+	1.1 Прописать в конфигурации GRUB параметр `rd.break`. Этот параметр останавливает загрузку на стадии initramfs и позволит сбросить пароль пользователя root. 
+
+	После загрузки монтируем /sysroot командой `mount -o remount,rw /sysroot` и меняем текущий корень командой `chroot /sysroot`. 
+	Далее командой `passwd` меняем пароль учетной записи root. 
+	Затем, чтобы это все сохранилось, создаем в корне файл .autorelabel командой `touch /.autorelabel`
+
+
+	1.2 Загрузиться с LiveCD  в Troubleshooting - Rescue a CentOS system
+
+	1.3 Добавить в параметры загрузки вместо `ro` пишем  `rw init=/bin/sh` , затем проделать все то же, что и в пункте 1.
+
+2. Установить систему с LVM, после чего переименовать VG
+
+	Посмотрим информацию о группах томов:
+
+		[root@centos romak]# lsblk
+		NAME                   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+		sda                      8:0    0   60G  0 disk
+		├─sda1                   8:1    0    1G  0 part /boot
+		└─sda2                   8:2    0   59G  0 part
+		  ├─centos_centos-root 253:0    0 35.6G  0 lvm  /
+		  ├─centos_centos-swap 253:1    0    6G  0 lvm  [SWAP]
+		  └─centos_centos-home 253:2    0 17.4G  0 lvm  /home
+		sr0                     11:0    1 1024M  0 rom
+		[root@centos romak]# vgs
+		  VG            #PV #LV #SN Attr   VSize   VFree
+		  centos_centos   1   3   0 wz--n- <59.00g    0
+		[root@centos romak]#
+		
+	Переименуем VG командой vgrename:
+		
+		[root@centos romak]# vgrename centos_centos otus_root
+		  Volume group "centos_centos" successfully renamed to "otus_root"
+		[root@centos romak]#
+		
+	В файлах /etc/fstab, /etc/default/grub, /boot/grub2/grub.cfg заменяем старое имя VG на новое.
+	
+	Пересоздаем initrd image:	
+	
+		[root@centos romak]# mkinitrd -f -v /boot/initramfs-$(uname -r).img $(uname -r)
+		
+		Executing: /usr/bin/dracut -f -v /boot/initramfs-3.10.0-957.12.1.el7.x86_64.img 3.10.0-957.12.1.el7.x86_64
+		***
+		*** Created microcode section ***
+		*** Creating image file done ***
+		*** Creating initramfs image file '/boot/initramfs-3.10.0-957.12.1.el7.x86_64.img' done ***
+		[root@centos romak]#
+
+	Перезагружаем систему и проверяем наименование VG:
+
+		Last login: Fri Jul 26 16:38:48 2019 from desktop-kcl8dbl
+		[romak@centos ~]$ su
+		Password:
+		[root@centos romak]# lsblk
+		NAME               MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+		sda                  8:0    0   60G  0 disk
+		├─sda1               8:1    0    1G  0 part /boot
+		└─sda2               8:2    0   59G  0 part
+		  ├─otus_root-root 253:0    0 35.6G  0 lvm  /
+		  ├─otus_root-swap 253:1    0    6G  0 lvm  [SWAP]
+		  └─otus_root-home 253:2    0 17.4G  0 lvm  /home
+		sr0                 11:0    1 1024M  0 rom
+		[root@centos romak]# vgs
+		  VG        #PV #LV #SN Attr   VSize   VFree
+		  otus_root   1   3   0 wz--n- <59.00g    0
+		[root@centos romak]#
+
+3. Добавить модуль в initrd
+	
+	 Чтобы добавить свой модуль создаем папку с именем 01test в каталоге /usr/lib/dracut/modules.d/
+	 
+		[root@centos romak]#  mkdir /usr/lib/dracut/modules.d/01test
+		[root@centos romak]#
+	
+	В нее поместим два скрипта:
+	
+	1. module-setup.sh - который устанавливает модулы и вызывает скрипт test.sh
+	2. test.sh - вызываемый скрипт
+	
+		[root@centos romak]# ll shares/sharedfolder/008/
+		
+		total 1
+		-rwxrwxrwx. 1 root root 126 Nov 27  2018 module-setup.sh
+		-rwxrwxrwx. 1 root root 334 Nov 27  2018 test.sh
+		
+		[root@centos romak]# cp shares/sharedfolder/008/*.sh /usr/lib/dracut/modules.d/01test
+		
+		[root@centos romak]# ll /usr/lib/dracut/modules.d/01test
+		
+		total 8
+		-rwxr-xr-x. 1 root root 126 Jul 29 17:52 module-setup.sh
+		-rwxr-xr-x. 1 root root 334 Jul 29 17:52 test.sh
+		[root@centos romak]#
+	
+	Пересоздаём initrd командой:
+	
+		[root@centos romak]# mkinitrd -f -v /boot/initramfs-$(uname -r).img $(uname -r)
+		Executing: /usr/bin/dracut -f -v /boot/initramfs-3.10.0-957.21.3.el7.x86_64.img 3.10.0-957.21.3.el7.x86_64
+		***
+		*** Creating initramfs image file '/boot/initramfs-3.10.0-957.21.3.el7.x86_64.img' done ***
+		[root@centos romak]#
+		
+	Посмотрим какие модули загружены в образ:
+	
+		[root@centos romak]#  lsinitrd -m /boot/initramfs-$(uname -r).img | grep test
+		test
+		[root@centos romak]#
+		
+	Редактируем grub.cfg, убрав опции rhgb quiet
+	
+	Перезагружаем.
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
