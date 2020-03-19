@@ -49,9 +49,6 @@
 ```
 ### Перезагружаем систему и проверяем наименование VG:
 ```bash
-		Last login: Fri Jul 26 16:38:48 2019 from desktop-kcl8dbl
-		[romak@centos ~]$ su
-		Password:
 		[root@centos romak]# lsblk
 		NAME               MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 		sda                  8:0    0   60G  0 disk
