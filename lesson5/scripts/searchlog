@@ -1,0 +1,5 @@
+# Configuration file for my watchdog service
+# Place it to /etc/sysconfig
+# File and word in that file that we will be monit
+KEYWORD="Trident/7.0"
+LOGFILE=/var/log/apache_log
