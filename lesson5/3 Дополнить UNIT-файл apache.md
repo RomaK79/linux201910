@@ -1,9 +1,10 @@
-3. Дополнить юнит-файл apache httpd возможностьб запустить несколько инстансов сервера с разными конфигами
-
-cp /usr/lib/systemd/system/httpd.service /usr/lib/systemd/system/httpd@first.service - создаем шаблон для инстанса httpd
-
-Изменяем  в Unit-файле строчку: ExecStart=/usr/sbin/httpd -f %i.conf -DFOREGROUND
-
+## 3. Дополнить юнит-файл apache httpd возможностьб запустить несколько инстансов сервера с разными конфигами
+### создаем шаблон для инстанса httpd
+```
+cp /usr/lib/systemd/system/httpd.service /usr/lib/systemd/system/httpd@first.service
+```
+### Изменяем  в Unit-файле строчку: ExecStart=/usr/sbin/httpd -f %i.conf -DFOREGROUND
+```
    [root@centos romak]# mcedit /usr/lib/systemd/system/httpd@first.service
 
    [Unit]
@@ -28,10 +29,9 @@ cp /usr/lib/systemd/system/httpd.service /usr/lib/systemd/system/httpd@first.ser
 
    [Install]
    WantedBy=multi-user.target
-
-
-Копируем конфиг httpd в /etc/httpd/first.conf
-
+```
+### Копируем конфиг httpd в /etc/httpd/first.conf
+```
    [root@centos romak]# cp /etc/httpd/conf/httpd.conf /etc/httpd/first.conf
    [root@centos romak]# ll /etc/httpd/
    total 12
@@ -42,16 +42,16 @@ cp /usr/lib/systemd/system/httpd.service /usr/lib/systemd/system/httpd@first.ser
    lrwxrwxrwx. 1 root root    19 Jul 12 15:49 logs -> ../../var/log/httpd
    lrwxrwxrwx. 1 root root    29 Jul 12 15:49 modules -> ../../usr/lib64/httpd/modules
    lrwxrwxrwx. 1 root root    10 Jul 12 15:49 run -> /run/httpd
-   
-Изменяем параметры PidFile и Listen:
-
+```   
+### Изменяем параметры PidFile и Listen:
+```
    [root@centos romak]# mcedit /etc/httpd/first.conf
 
    PidFile /var/run/httpd-first.pid
    Listen 8080
-   
-Запускаем новый сервис и проверяем статус:
-
+```   
+### Запускаем новый сервис и проверяем статус:
+```
 [root@centos romak]# systemctl start httpd@first
 [root@centos romak]# systemctl status httpd@first
 ● httpd@first.service - The Apache HTTP Server
@@ -73,3 +73,4 @@ Jul 18 17:45:17 centos.localdomain systemd[1]: Starting The Apache HTTP Server..
 Jul 18 17:45:17 centos.localdomain httpd[1968]: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using centos.localdomain. Set the 'ServerName' directive globally to suppress this message
 Jul 18 17:45:18 centos.localdomain systemd[1]: Started The Apache HTTP Server.
 [root@centos romak]#
+```
