@@ -1,7 +1,7 @@
-2. Из epel установить spawn-fcgi и переписать init-скрипт на unit-файл. Имя сервиса должно так же называться.
+## 2. Из epel установить spawn-fcgi и переписать init-скрипт на unit-файл. Имя сервиса должно так же называться.
 
-Устанавливаем spawn-fcgi и необходимые для него пакеты:
-
+### Устанавливаем spawn-fcgi и необходимые для него пакеты:
+```
   [root@centos romak]# yum install epel-release -y && yum install spawn-fcgi php php-cli mod_fcgid httpd -y
   ......
   Installed:
@@ -12,9 +12,9 @@
 
   Complete!
   [root@centos romak]#
-
-В конфиге /etc/sysconfig/spawn-fcgi нужно раскоментировать строки.
-
+```
+### В конфиге /etc/sysconfig/spawn-fcgi нужно раскоментировать строки.
+```
   [root@centos romak]# cat /etc/sysconfig/spawn-fcgisconfig/spawn-fcgi
   # You must set some working options before the "spawn-fcgi" service will work.
   # If SOCKET points to a file, then this file is cleaned up by the init script.
@@ -26,9 +26,9 @@
   OPTIONS="-u apache -g apache -s $SOCKET -S -M 0600 -C 32 -F 1 -P /var/run/spawn-fcgi.pid -- /usr/bin/php-cgi"
 
   [root@centos romak]#
-  
-Создадим unit-file
-
+```  
+### Создадим unit-file
+```
   [root@centos romak]# mcedit /etc/systemd/system/spawn-fcgi.service
 
   [Unit]
@@ -43,9 +43,9 @@
   [Install]
   WantedBy=multi-user.target
   [root@centos romak]#
-  
-Проверяем работу сервиса:
-
+```
+### Проверяем работу сервиса:
+```
   [root@centos romak]# systemctl start spawn-fcgi
   [root@centos romak]# systemctl status spawn-fcgi
   ● spawn-fcgi.service - Spawn-fcgi startup service by Otus
@@ -89,5 +89,5 @@
 
   Jul 18 15:25:14 centos.localdomain systemd[1]: Started Spawn-fcgi startup service by Otus.
   [root@centos romak]#
-  
-  
+ ```
+ 
