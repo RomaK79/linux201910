@@ -6,4 +6,7 @@
 001. [Занятие 4 Загрузка системы](https://github.com/RomaK79/linux201910/tree/master/lesson4)
 001. [Занятие 5 Инициализация системы. Systemd и SysV.](https://github.com/RomaK79/linux201910/tree/master/lesson5)
 001. [...]
-001. [Занятие 10 ](../../tree/master/lesson10)
+001. [...]
+001. [...]
+001. [...]
+001. [Занятие 10 Автоматизация администрирования. Ansible.](../../tree/master/lesson10)
