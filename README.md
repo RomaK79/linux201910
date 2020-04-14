@@ -5,3 +5,5 @@
 001. [Занятие 3 Работа с LVM](https://github.com/RomaK79/linux201910/tree/master/lesson3)
 001. [Занятие 4 Загрузка системы](https://github.com/RomaK79/linux201910/tree/master/lesson4)
 001. [Занятие 5 Инициализация системы. Systemd и SysV.](https://github.com/RomaK79/linux201910/tree/master/lesson5)
+001. [...]
+001. [Занятие 10 ](../../tree/master/lesson10)
